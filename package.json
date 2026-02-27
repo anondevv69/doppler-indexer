@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.17.1",
   "scripts": {
     "dev": "ponder dev",
-    "start": "ponder start",
+    "start": "ponder start --config ./ponder.config.multicurve.ts -p $PORT --schema default",
     "db": "ponder db",
     "codegen": "ponder codegen",
     "lint": "eslint .",

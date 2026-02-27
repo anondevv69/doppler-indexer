@@ -27,102 +27,130 @@ import { UniswapV4ScheduledMulticurveInitializerABI } from "@app/abis/multicurve
 
 const { base, unichain, ink, baseSepolia, monad } = chainConfigs;
 
+// Use DATABASE_URL on Railway; fallback for local
+function getDatabaseUrl(): string {
+  return process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/default";
+}
+
+// Only include chains that have an RPC URL set (run with just Base, or add env vars for others)
+const chains: Record<string, { id: number; rpc: ReturnType<typeof http> }> = {};
+if (process.env.PONDER_RPC_URL_84532) {
+  chains.baseSepolia = { id: CHAIN_IDS.baseSepolia, rpc: http(process.env.PONDER_RPC_URL_84532) };
+}
+if (process.env.PONDER_RPC_URL_8453) {
+  chains.base = { id: CHAIN_IDS.base, rpc: http(process.env.PONDER_RPC_URL_8453) };
+}
+if (process.env.PONDER_RPC_URL_130) {
+  chains.unichain = { id: CHAIN_IDS.unichain, rpc: http(process.env.PONDER_RPC_URL_130) };
+  chains.ink = { id: CHAIN_IDS.ink, rpc: http(process.env.PONDER_RPC_URL_130) };
+}
+if (process.env.PONDER_RPC_URL_143) {
+  chains.monad = { id: CHAIN_IDS.monad, rpc: http(process.env.PONDER_RPC_URL_143) };
+}
+
+const has = (name: string) => name in chains;
+
+// Blocks: only include entries for chains we have
+const blocks: Record<string, { chain: string; startBlock: number; interval: number }> = {};
+if (has("baseSepolia")) {
+  blocks.BaseSepoliaChainlinkEthPriceFeed = { chain: "baseSepolia", startBlock: 31000617, interval: BLOCK_INTERVALS.FIVE_MINUTES };
+}
+if (has("base")) {
+  blocks.BaseChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: BLOCK_INTERVALS.FIVE_MINUTES };
+  blocks.ZoraUsdcPrice = { chain: "base", startBlock: 31058549, interval: 99999999999 };
+  blocks.FxhWethPrice = { chain: "base", startBlock: 36175538, interval: BLOCK_INTERVALS.FIVE_MINUTES };
+  blocks.NoiceWethPrice = { chain: "base", startBlock: 30530166, interval: BLOCK_INTERVALS.FIVE_MINUTES };
+  blocks.EurcUsdcPrice = { chain: "base", startBlock: 38212428, interval: 99999999999 };
+}
+if (has("unichain")) {
+  blocks.UnichainChainlinkEthPriceFeed = { chain: "unichain", startBlock: unichain.startBlock, interval: 99999999999 };
+}
+if (has("ink")) {
+  blocks.InkChainlinkEthPriceFeed = { chain: "ink", startBlock: ink.startBlock, interval: 99999999999 };
+}
+if (has("monad")) {
+  blocks.MonadChainlinkEthPriceFeed = { chain: "base", startBlock: monad.startBlock, interval: 99999999999 };
+  blocks.MonadUsdcPrice = { chain: "monad", startBlock: monad.startBlock, interval: 99999999999 };
+}
+
+// Contract chain entries: only include chains we have (so Ponder doesn't require RPCs for unused chains)
+const airlockChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  airlockChain.baseSepolia = { startBlock: 31000617, address: baseSepolia.addresses.shared.airlock };
+}
+if (has("base")) {
+  airlockChain.base = { startBlock: 36178538, address: base.addresses.shared.airlock };
+}
+
+const derc20Chain: Record<string, unknown> = {};
+if (has("base")) {
+  derc20Chain.base = {
+    startBlock: 36178538,
+    address: factory({
+      address: base.addresses.shared.airlock,
+      event: getAbiItem({ abi: AirlockABI, name: "Create" }),
+      parameter: "asset",
+    }),
+  };
+}
+if (has("baseSepolia")) {
+  derc20Chain.baseSepolia = {
+    startBlock: 31000617,
+    address: factory({
+      address: baseSepolia.addresses.shared.airlock,
+      event: getAbiItem({ abi: AirlockABI, name: "Create" }),
+      parameter: "asset",
+    }),
+  };
+}
+
+const multicurveInitChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  multicurveInitChain.baseSepolia = { startBlock: 31000617, address: baseSepolia.addresses.v4.v4MulticurveInitializer };
+}
+if (has("base")) {
+  multicurveInitChain.base = { startBlock: 36178538, address: base.addresses.v4.v4MulticurveInitializer };
+}
+
+const multicurveInitHookChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  multicurveInitHookChain.baseSepolia = { startBlock: 31000617, address: baseSepolia.addresses.v4.v4MulticurveInitializerHook };
+}
+if (has("base")) {
+  multicurveInitHookChain.base = { startBlock: 36178538, address: base.addresses.v4.v4MulticurveInitializerHook };
+}
+
+const scheduledInitChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  scheduledInitChain.baseSepolia = { startBlock: 32169922, address: baseSepolia.addresses.v4.v4ScheduledMulticurveInitializer };
+}
+if (has("base")) {
+  scheduledInitChain.base = { startBlock: 36659443, address: base.addresses.v4.v4ScheduledMulticurveInitializer };
+}
+
+const scheduledInitHookChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  scheduledInitHookChain.baseSepolia = { startBlock: 32169922, address: baseSepolia.addresses.v4.v4ScheduledMulticurveInitializerHook };
+}
+if (has("base")) {
+  scheduledInitHookChain.base = { startBlock: 36659444, address: base.addresses.v4.v4ScheduledMulticurveInitializerHook };
+}
+
 export default createConfig({
   database: {
     kind: "postgres",
-    connectionString: "postgresql://postgres:postgres@localhost:5432/default",
+    connectionString: getDatabaseUrl(),
     poolConfig: {
       max: 100,
     },
   },
   ordering: "multichain",
-  chains: {
-    baseSepolia: {
-      id: CHAIN_IDS.baseSepolia,
-      rpc: http(process.env.PONDER_RPC_URL_84532),
-    },
-    base: {
-      id: CHAIN_IDS.base,
-      rpc: http(process.env.PONDER_RPC_URL_8453),
-    },
-    unichain: {
-      id: CHAIN_IDS.unichain,
-      rpc: http(process.env.PONDER_RPC_URL_130),
-    },
-    ink: {
-      id: CHAIN_IDS.ink,
-      rpc: http(process.env.PONDER_RPC_URL_130),
-    },
-    monad: {
-      id: CHAIN_IDS.monad,
-      rpc: http(process.env.PONDER_RPC_URL_143)
-    }
-  },
-  blocks: {
-    BaseSepoliaChainlinkEthPriceFeed: {
-      chain: "baseSepolia",
-      startBlock: 31000617,
-      interval: BLOCK_INTERVALS.FIVE_MINUTES, // every 5 minutes
-    },
-    BaseChainlinkEthPriceFeed: {
-      chain: "base",
-      startBlock: 36175538,
-      interval: BLOCK_INTERVALS.FIVE_MINUTES, // every 5 minutes
-    },
-    UnichainChainlinkEthPriceFeed: {
-      chain: "unichain",
-      startBlock: unichain.startBlock,
-      interval: 99999999999, // never run on testnet, just need this otherwise build fails...
-    },
-    InkChainlinkEthPriceFeed: {
-      chain: "ink",
-      startBlock: ink.startBlock,
-      interval: 99999999999, // never run on testnet, just need this otherwise build fails...
-    },
-    ZoraUsdcPrice: {
-      chain: "base",
-      startBlock: 31058549,
-      interval: 99999999999, // never run on testnet, just need this otherwise build fails...
-    },
-    FxhWethPrice: {
-      chain: "base",
-      startBlock: 36175538,
-      interval: BLOCK_INTERVALS.FIVE_MINUTES, // every 5 minutes
-    },
-    NoiceWethPrice: {
-      chain: "base",
-      startBlock: 30530166,
-      interval: BLOCK_INTERVALS.FIVE_MINUTES, // every 5 minutes
-    },
-    MonadChainlinkEthPriceFeed: {
-      chain: "base",
-      startBlock: monad.startBlock,
-      interval: 99999999999,
-    },
-    MonadUsdcPrice: {
-      chain: "monad",
-      startBlock: monad.startBlock,
-      interval: 99999999999,
-    },
-    EurcUsdcPrice: {
-      chain: "base",
-      startBlock: 38212428,
-      interval: 99999999999,
-    },
-  },
+  chains,
+  blocks,
   contracts: {
     Airlock: {
       abi: AirlockABI,
-      chain: {
-        baseSepolia: {
-        startBlock: 31000617,
-          address: baseSepolia.addresses.shared.airlock,
-        },
-        base: {
-          startBlock: 36178538,
-          address: base.addresses.shared.airlock,
-        },
-      },
+      chain: airlockChain,
     },
     MigrationPool: {
       abi: mergeAbis([UniswapV3PoolABI, UniswapV2PairABI]),
@@ -146,24 +174,7 @@ export default createConfig({
     },
     DERC20: {
       abi: DERC20ABI,
-      chain: {
-        base: {
-          startBlock: 36178538,
-          address: factory({
-            address: base.addresses.shared.airlock,
-            event: getAbiItem({ abi: AirlockABI, name: "Create" }),
-            parameter: "asset",
-          }),
-        },
-        baseSepolia: {
-          startBlock: 31000617,
-          address: factory({
-            address: baseSepolia.addresses.shared.airlock,
-            event: getAbiItem({ abi: AirlockABI, name: "Create" }),
-            parameter: "asset",
-          }),
-        },
-      },
+      chain: derc20Chain,
     },
     UniswapV3Migrator: {
       abi: UniswapV3MigratorAbi,
@@ -223,55 +234,19 @@ export default createConfig({
     },
     UniswapV4MulticurveInitializer: {
       abi: UniswapV4MulticurveInitializerABI,
-      chain: {
-        baseSepolia: {
-          startBlock: 31000617,
-          address: baseSepolia.addresses.v4.v4MulticurveInitializer,
-        },
-        base: {
-          startBlock: 36178538,
-          address: base.addresses.v4.v4MulticurveInitializer,
-        },
-      },
+      chain: multicurveInitChain,
     },
     UniswapV4MulticurveInitializerHook: {
       abi: UniswapV4MulticurveInitializerHookABI,
-      chain: {
-        baseSepolia: {
-          startBlock: 31000617,
-          address: baseSepolia.addresses.v4.v4MulticurveInitializerHook,
-        },
-        base: {
-          startBlock: 36178538,
-          address: base.addresses.v4.v4MulticurveInitializerHook,
-        },
-      },
+      chain: multicurveInitHookChain,
     },
     UniswapV4ScheduledMulticurveInitializer: {
       abi: UniswapV4ScheduledMulticurveInitializerABI,
-      chain: {
-        baseSepolia: {
-          startBlock: 32169922,
-          address: baseSepolia.addresses.v4.v4ScheduledMulticurveInitializer,
-        },
-        base: {
-          startBlock: 36659443,
-          address: base.addresses.v4.v4ScheduledMulticurveInitializer,
-        },
-      },
+      chain: scheduledInitChain,
     },
     UniswapV4ScheduledMulticurveInitializerHook: {
       abi: UniswapV4ScheduledMulticurveInitializerHookABI,
-      chain: {
-        baseSepolia: {
-          startBlock: 32169922,
-          address: baseSepolia.addresses.v4.v4ScheduledMulticurveInitializerHook,
-        },
-        base: {
-          startBlock: 36659444,
-          address: base.addresses.v4.v4ScheduledMulticurveInitializerHook,
-        },
-      },
+      chain: scheduledInitHookChain,
     },
     DopplerHookInitializer: {
       abi: DopplerHookInitializerABI,
@@ -279,7 +254,7 @@ export default createConfig({
     },
     UniswapV4MigratorHook: {
       abi: V4MigratorHookABI,
-      chain: {}
-    }
+      chain: {},
+    },
   },
 });
