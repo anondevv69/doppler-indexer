@@ -290,5 +290,13 @@ export default createConfig({
       abi: RehypeDopplerHookMigratorABI,
       chain: {},
     },
+    DecayMulticurveInitializer: {
+      abi: UniswapV4ScheduledMulticurveInitializerABI,
+      chain: {},
+    },
+    DecayMulticurveInitializerHook: {
+      abi: UniswapV4ScheduledMulticurveInitializerHookABI,
+      chain: {},
+    },
   },
 });
