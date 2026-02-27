@@ -23,10 +23,19 @@ import { UniswapV4MulticurveInitializerABI } from "@app/abis/multicurve-abis/Uni
 
 const { base, unichain, ink, baseSepolia } = chainConfigs;
 
+// Use DATABASE_URL on Railway; fallback for local
+function getDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/default";
+  if (url.includes("localhost") || url.includes("sslmode=")) return url;
+  if (url.includes("railway.internal")) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}sslmode=require`;
+}
+
 export default createConfig({
   database: {
     kind: "postgres",
-    connectionString: "postgresql://postgres:postgres@localhost:5432/default",
+    connectionString: getDatabaseUrl(),
     poolConfig: {
       max: 100,
     },
