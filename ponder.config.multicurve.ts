@@ -14,6 +14,7 @@ import {
   ZoraCoinABI,
   ZoraCreatorCoinABI,
   V4MigratorHookABI,
+  V4MigratorABI,
   DopplerHookInitializerABI,
 } from "./src/abis";
 import { BLOCK_INTERVALS } from "./src/config/chains/constants";
@@ -136,6 +137,14 @@ if (has("base")) {
   scheduledInitHookChain.base = { startBlock: 36659444, address: base.addresses.v4.v4ScheduledMulticurveInitializerHook };
 }
 
+const v4MigratorChain: Record<string, unknown> = {};
+if (has("baseSepolia")) {
+  v4MigratorChain.baseSepolia = { startBlock: baseSepolia.startBlock, address: baseSepolia.addresses.v4.v4Migrator };
+}
+if (has("base")) {
+  v4MigratorChain.base = { startBlock: base.v4StartBlock, address: base.addresses.v4.v4Migrator };
+}
+
 export default createConfig({
   database: {
     kind: "postgres",
@@ -255,6 +264,10 @@ export default createConfig({
     UniswapV4MigratorHook: {
       abi: V4MigratorHookABI,
       chain: {},
+    },
+    UniswapV4Migrator: {
+      abi: V4MigratorABI,
+      chain: v4MigratorChain,
     },
   },
 });
