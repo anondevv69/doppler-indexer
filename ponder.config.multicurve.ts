@@ -58,10 +58,14 @@ if (has("baseSepolia")) {
 }
 if (has("base")) {
   blocks.BaseChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: BLOCK_INTERVALS.FIVE_MINUTES };
-  // Dummy blocks so shared blockHandlers validate; multicurve has no mainnet/sepolia, never run
+  // Dummy blocks so shared blockHandlers validate when running Base-only; never run (huge interval)
   blocks.MainnetChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: 99999999999 };
   blocks.SepoliaChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: 99999999999 };
   blocks.BankrWethPrice = { chain: "base", startBlock: 36175538, interval: 99999999999 };
+  blocks.UnichainChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: 99999999999 };
+  blocks.InkChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: 99999999999 };
+  blocks.MonadChainlinkEthPriceFeed = { chain: "base", startBlock: 36175538, interval: 99999999999 };
+  blocks.MonadUsdcPrice = { chain: "base", startBlock: 36175538, interval: 99999999999 };
   blocks.ZoraUsdcPrice = { chain: "base", startBlock: 31058549, interval: 99999999999 };
   blocks.FxhWethPrice = { chain: "base", startBlock: 36175538, interval: BLOCK_INTERVALS.FIVE_MINUTES };
   blocks.NoiceWethPrice = { chain: "base", startBlock: 30530166, interval: BLOCK_INTERVALS.FIVE_MINUTES };
