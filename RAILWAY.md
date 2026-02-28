@@ -48,7 +48,7 @@ Use this guide when starting a **new** Railway project (e.g. after deleting the 
     ```bash
     pnpm run start:bankr
     ```
-    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s.
+    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s. The script uses `--schema bankr` (not `default`) so Ponder doesn’t conflict with a previous multicurve run that used the same DB.
 - **Root directory:** leave as repo root.
 
 ---
