@@ -31,6 +31,7 @@ import { zeroAddress } from "viem";
 import { getQuoteInfo } from "@app/utils/getQuoteInfo";
 import { updateCumulatedFees, handleCollect } from "./shared/cumulatedFees";
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on(
   "UniswapV4ScheduledMulticurveInitializer:Create",
   async ({ event, context }) => {
@@ -361,3 +362,4 @@ ponder.on(
     ]);
   },
 );
+}

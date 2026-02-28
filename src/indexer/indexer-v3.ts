@@ -19,6 +19,7 @@ import { fetchV3MigrationPool, updateMigrationPool } from "./shared/entities/mig
 import { insertAssetIfNotExists, updateAsset } from "./shared/entities";
 import { LockableUniswapV3InitializerABI, UniswapV3PoolABI } from "@app/abis";
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on("UniswapV3Initializer:Create", async ({ event, context }) => {
   const { poolOrHook, asset, numeraire } = event.args;
   const timestamp = event.block.timestamp;
@@ -1030,3 +1031,4 @@ ponder.on("MigrationPool:Swap(address indexed sender, address indexed recipient,
     }),
   ]);
 });
+}

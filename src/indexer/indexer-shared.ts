@@ -13,6 +13,9 @@ import { zeroAddress } from "viem";
 import { getV4MigratorForAsset, getDHookMigratorForAsset } from "@app/utils/v4-utils";
 import { isPrecompileAddress } from "@app/utils/validation";
 
+const isBankrOnly = process.env.BANKR_ONLY === "1";
+
+if (!isBankrOnly) {
 ponder.on("Airlock:Migrate", async ({ event, context }) => {
   const { timestamp } = event.block;
   const assetId = event.args.asset.toLowerCase() as `0x${string}`;
@@ -183,7 +186,9 @@ ponder.on("Airlock:Migrate", async ({ event, context }) => {
     ]);
   }
 });
+}
 
+if (!isBankrOnly) {
 ponder.on("DERC20:Transfer", async ({ event, context }) => {
   const { address } = event.log;
   const { timestamp } = event.block;
@@ -303,3 +308,4 @@ ponder.on("DERC20:Transfer", async ({ event, context }) => {
 
   await Promise.all(updatePromises);
 });
+}

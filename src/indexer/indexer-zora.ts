@@ -126,6 +126,7 @@ import { isPrecompileAddress } from "@app/utils/validation";
 //   });
 // });
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on("ZoraFactory:CreatorCoinCreated", async ({ event, context }) => {
   const { coin, currency, poolKey, poolKeyHash, caller } = event.args;
 
@@ -378,6 +379,7 @@ ponder.on("ZoraCreatorCoinV4:CoinTransfer", async ({ event, context }) => {
     });
   }
 });
+}
 
 // ponder.on("ZoraCoinV4:CoinTransfer", async ({ event, context }) => {
 //   const { address } = event.log;

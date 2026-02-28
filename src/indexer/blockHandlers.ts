@@ -7,6 +7,8 @@ import { PriceService } from "@app/core";
 import { chainConfigs } from "@app/config";
 import { parseUnits, zeroAddress, createPublicClient, http, numberToHex } from "viem";
 
+const isBankrOnly = process.env.BANKR_ONLY === "1";
+
 ponder.on("BaseChainlinkEthPriceFeed:block", async ({ event, context }) => {
   const { db, client, chain } = context;
   const { timestamp } = event.block;
@@ -32,6 +34,7 @@ ponder.on("BaseChainlinkEthPriceFeed:block", async ({ event, context }) => {
     .onConflictDoNothing();
 });
 
+if (!isBankrOnly) {
 ponder.on("MainnetChainlinkEthPriceFeed:block", async ({ event, context }) => {
   const { db, client, chain } = context;
   const { timestamp } = event.block;
@@ -423,6 +426,7 @@ ponder.on("EurcUsdcPrice:block", async ({ event, context }) => {
     return;
   }
 });
+}
 
 ponder.on("BankrWethPrice:block", async ({ event, context }) => {
   const { db, client, chain } = context;

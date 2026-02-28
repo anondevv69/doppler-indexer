@@ -32,6 +32,7 @@ import { Address, zeroAddress } from "viem";
 import { QuoteToken, QuoteInfo, getQuoteInfo } from "@app/utils/getQuoteInfo";
 import { updateCumulatedFees, handleCollect } from "./shared/cumulatedFees";
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on("UniswapV4Initializer:Create", async ({ event, context }) => {
   const { poolOrHook, asset: assetId, numeraire } = event.args;
   const { block } = event;
@@ -1034,3 +1035,4 @@ ponder.on("UniswapV4Migrator:Migrate", async ({ event, context }) => {
 
   addToV4MigrationPoolCache(chain.id, poolId as string);
 });
+}

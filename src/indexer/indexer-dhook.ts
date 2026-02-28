@@ -18,6 +18,7 @@ import { updateCumulatedFees } from "./shared/cumulatedFees";
 import { fetchV4MigrationPool, updateV4Pool } from "./shared/entities/v4pools";
 import { v4pools } from "ponder:schema";
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on("DopplerHookInitializer:Create", async ({ event, context }) => {
   const { poolOrHook, asset: assetId, numeraire } = event.args;
   const { block, transaction } = event;
@@ -717,6 +718,7 @@ ponder.on("DopplerHookMigrator:Swap", async ({ event, context }) => {
     }),
   ]);
 });
+}
 
 ponder.on("RehypeDopplerHookMigrator:AirlockOwnerFeesClaimed", async ({ event, context }) => {
   const { poolId, airlockOwner, fees0, fees1 } = event.args;

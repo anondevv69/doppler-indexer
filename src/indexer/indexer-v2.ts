@@ -15,6 +15,7 @@ import { chainConfigs } from "@app/config";
 import { SwapService, SwapOrchestrator, PriceService, MarketDataService } from "@app/core";
 import { updateFifteenMinuteBucketUsd } from "@app/utils/time-buckets";
 
+if (process.env.BANKR_ONLY !== "1") {
 ponder.on("MigrationPool:Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)", async ({ event, context }) => {
   const { db, chain } = context;
   const { timestamp } = event.block;
@@ -191,6 +192,7 @@ ponder.on("MigrationPool:Swap(address indexed sender, uint256 amount0In, uint256
     }),
   ]);
 });
+}
 
 /* =================== INFO =================== */
 /* COMMENT THIS OUT IF DOING LOCAL DEVELOPMENT */
