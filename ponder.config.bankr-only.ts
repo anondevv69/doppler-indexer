@@ -35,18 +35,19 @@ if (process.env.PONDER_RPC_URL_8453) {
   chains.base = { id: CHAIN_IDS.base, rpc: baseRpc };
 }
 
-// Only blocks needed for Bankr: ETH price and Bankr WETH price
+// Only blocks needed for Bankr: ETH price and Bankr WETH price (start at Bankr launch to reduce 429s)
+const BANKR_LAUNCH_BLOCK = 42019800;
 const blocks: Record<string, { chain: string; startBlock: number; interval: number }> = {};
 if (chains.base) {
   blocks.BaseChainlinkEthPriceFeed = {
     chain: "base",
-    startBlock: 36175538,
-    interval: BLOCK_INTERVALS.FIVE_MINUTES,
+    startBlock: BANKR_LAUNCH_BLOCK, // was 36175538; start at Bankr launch to cut backfill and RPC load
+    interval: BLOCK_INTERVALS.FIFTEEN_MINUTES, // 15 min to reduce eth_getBlockByNumber calls vs 5 min
   };
   blocks.BankrWethPrice = {
     chain: "base",
-    startBlock: 42019800, // align with Bankr launch (~decayHookStart); avoids backfilling from 41900609
-    interval: BLOCK_INTERVALS.FIVE_MINUTES,
+    startBlock: BANKR_LAUNCH_BLOCK,
+    interval: BLOCK_INTERVALS.FIFTEEN_MINUTES,
   };
 }
 

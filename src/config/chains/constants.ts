@@ -74,7 +74,8 @@ export const RPC_ENV_VARS = {
 } as const;
 
 export const BLOCK_INTERVALS = {
-  FIVE_MINUTES: (60 * 5) / 12, // every 5 minutes
+  FIVE_MINUTES: (60 * 5) / 12, // every 5 minutes (Base ~25 blocks)
+  FIFTEEN_MINUTES: (60 * 15) / 12, // every 15 minutes (Base ~75 blocks); fewer RPC calls
   FIVE_MINUTES_MONAD: (60 * 5) / 0.5,
   FIFTY_BLOCKS: 50, // every 50 blocks
   THOUSAND_BLOCKS: 1000, // every 1000 blocks
