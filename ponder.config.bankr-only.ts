@@ -45,7 +45,7 @@ if (chains.base) {
   };
   blocks.BankrWethPrice = {
     chain: "base",
-    startBlock: 41900609,
+    startBlock: 42019800, // align with Bankr launch (~decayHookStart); avoids backfilling from 41900609
     interval: BLOCK_INTERVALS.FIVE_MINUTES,
   };
 }
