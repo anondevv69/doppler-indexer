@@ -1,10 +1,11 @@
 import { Context } from "ponder:registry";
-import { cumulatedFees } from "ponder:schema";
+import { cumulatedFees, v4pools } from "ponder:schema";
 import { UniswapV4MulticurveInitializerABI } from "@app/abis/multicurve-abis/UniswapV4MulticurveInitializerABI";
 import { MarketDataService } from "@app/core";
 import { QuoteInfo } from "@app/utils/getQuoteInfo";
 import { getOrFetchBeneficiaries } from "./beneficiariesCache";
 import { getMulticallOptions } from "@app/core/utils/multicall";
+import { isBankrOnlyEnabled, isTokenInBankrList } from "./bankrAllowlist";
 
 interface UpdateCumulatedFeesParams {
   poolId: `0x${string}`;
@@ -23,6 +24,16 @@ export async function updateCumulatedFees({
   quoteInfo,
   context,
 }: UpdateCumulatedFeesParams): Promise<void> {
+  if (isBankrOnlyEnabled()) {
+    const pool = await context.db.find(v4pools, {
+      poolId: poolId.toLowerCase() as `0x${string}`,
+      chainId,
+    });
+    if (!pool || !isTokenInBankrList(pool.baseToken)) {
+      return;
+    }
+  }
+
   const cached = await getOrFetchBeneficiaries(chainId, poolId, context);
   if (!cached || cached.beneficiaries.length === 0) {
     return;

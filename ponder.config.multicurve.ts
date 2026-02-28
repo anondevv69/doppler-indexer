@@ -1,5 +1,5 @@
 import { createConfig, factory, mergeAbis } from "ponder";
-import { getAbiItem, http } from "viem";
+import { fallback, getAbiItem, http } from "viem";
 import {
   UniswapV3InitializerABI,
   UniswapV4InitializerABI,
@@ -41,7 +41,11 @@ if (process.env.PONDER_RPC_URL_84532) {
   chains.baseSepolia = { id: CHAIN_IDS.baseSepolia, rpc: http(process.env.PONDER_RPC_URL_84532) };
 }
 if (process.env.PONDER_RPC_URL_8453) {
-  chains.base = { id: CHAIN_IDS.base, rpc: http(process.env.PONDER_RPC_URL_8453) };
+  const baseRpc =
+    process.env.PONDER_RPC_URL_8453_FALLBACK ?
+      fallback([http(process.env.PONDER_RPC_URL_8453), http(process.env.PONDER_RPC_URL_8453_FALLBACK)])
+    : http(process.env.PONDER_RPC_URL_8453);
+  chains.base = { id: CHAIN_IDS.base, rpc: baseRpc };
 }
 if (process.env.PONDER_RPC_URL_130) {
   chains.unichain = { id: CHAIN_IDS.unichain, rpc: http(process.env.PONDER_RPC_URL_130) };

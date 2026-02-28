@@ -2,6 +2,7 @@ import { Context } from "ponder:registry";
 import { v4pools } from "ponder:schema";
 import { Address } from "viem";
 import { MarketDataService } from "@app/core";
+import { isBankrOnlyEnabled, isTokenInBankrList } from "../bankrAllowlist";
 import { getV4MigrationPoolData } from "@app/utils/v4-utils/getV4MigrationPoolData";
 import { QuoteToken, getQuoteInfo } from "@app/utils/getQuoteInfo";
 import { computeV4Price } from "@app/utils/v4-utils/computeV4Price";
@@ -110,6 +111,10 @@ export const insertV4PoolFromInitialize = async ({
   const baseToken = currency0.toLowerCase() as `0x${string}`;
   const quoteToken = currency1.toLowerCase() as `0x${string}`;
   const isToken0 = true;
+
+  if (isBankrOnlyEnabled() && !isTokenInBankrList(baseToken)) {
+    return null;
+  }
 
   const quoteInfo = await getQuoteInfo(quoteToken, timestamp, context);
   const isQuoteEth = quoteInfo.quoteToken === QuoteToken.Eth;
@@ -249,7 +254,7 @@ export const insertV4MigrationPoolIfNotExists = async ({
   parentPoolAddress: Address;
   timestamp: bigint;
   context: Context;
-}): Promise<typeof v4pools.$inferSelect> => {
+}): Promise<typeof v4pools.$inferSelect | null> => {
   const { db, chain, client } = context;
 
   const migrationData = await getV4MigrationPoolData({
@@ -259,6 +264,15 @@ export const insertV4MigrationPoolIfNotExists = async ({
     timestamp,
     context,
   });
+
+  if (isBankrOnlyEnabled() && !isTokenInBankrList(migrationData.baseToken)) {
+    const existing = await db.find(v4pools, {
+      poolId: migrationData.poolId,
+      chainId: chain.id,
+    });
+    if (existing) return existing;
+    return null;
+  }
 
   const existingPool = await db.find(v4pools, {
     poolId: migrationData.poolId,
