@@ -48,7 +48,7 @@ Use this guide when starting a **new** Railway project (e.g. after deleting the 
     ```bash
     pnpm run start:bankr
     ```
-    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s. If you still hit 429s during backfill, set `PONDER_RPC_URL_8453_FALLBACK` to a second Base RPC (same as multicurve). The script uses `--schema bankr_v2` (not `default`) so Ponder doesn’t conflict with multicurve or an older bankr run. If you see "Schema was previously used by a different Ponder app", use a new schema (e.g. bankr_v3) in the script or run DROP SCHEMA bankr_v2 CASCADE in Postgres and redeploy.
+    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s. If you still hit 429s during backfill, set `PONDER_RPC_URL_8453_FALLBACK` to a second Base RPC (same as multicurve). The script uses `--schema bankr_v3` (not `default`) so Ponder doesn’t conflict with multicurve or an older bankr run. If you see "Schema was previously used by a different Ponder app", use a new schema (e.g. bankr_v3) in the script or run DROP SCHEMA bankr_v2 CASCADE in Postgres and redeploy.
 - **Root directory:** leave as repo root.
 
 ---
@@ -58,6 +58,25 @@ Use this guide when starting a **new** Railway project (e.g. after deleting the 
 - Save variables and let Railway **deploy**.
 - When the service is running: **Settings** → **Networking** → **Generate Domain**.
 - Copy the URL (e.g. `https://doppler-indexer-xxxx.up.railway.app`). This is your **DOPPLER_INDEXER_URL** for the BankrMonitor bot.
+
+---
+
+## Fix: "Schema was previously used by a different Ponder app"
+
+If the indexer crashes on startup with that error, Ponder’s app fingerprint no longer matches the schema (e.g. after a config change). You can either use a new schema in code (e.g. bump to `bankr_v4` in `package.json` and redeploy) or **reset the schema in Postgres**:
+
+1. In Railway, open your **PostgreSQL** service.
+2. Go to the **Data** or **Query** tab (or connect with any Postgres client using `DATABASE_URL`).
+3. Run (for the current schema name, e.g. `bankr_v3`):
+
+   ```sql
+   DROP SCHEMA bankr_v3 CASCADE;
+   CREATE SCHEMA bankr_v3;
+   ```
+
+4. **Redeploy** the indexer service. It will run migrations on the empty schema and start indexing.
+
+Use this whenever you change config (contracts, blocks, handlers) and see the schema error again.
 
 ---
 

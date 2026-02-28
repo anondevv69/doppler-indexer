@@ -2,9 +2,9 @@
  * Bankr-only indexer: Base chain + only Bankr-relevant contracts and blocks.
  * Use this to avoid indexing Doppler, Ohara, Long, Duels, Zora, etc. — fewer RPC calls and 429s.
  *
- * Start: pnpm start:bankr  or  ponder start --config ./ponder.config.bankr-only.ts -p $PORT --schema bankr_v2
+ * Start: pnpm start:bankr  or  ponder start --config ./ponder.config.bankr-only.ts -p $PORT --schema bankr_v3
  * Env: PONDER_RPC_URL_8453 (required); PONDER_RPC_URL_8453_FALLBACK (optional, reduces 429s).
- * Schema bankr_v2 avoids "Schema was previously used by a different Ponder app" if you previously ran with bankr.
+ * If you see "Schema was previously used by a different Ponder app", either use a new schema in the script (e.g. bankr_v4) or run in Railway Postgres: DROP SCHEMA bankr_v3 CASCADE; CREATE SCHEMA bankr_v3;
  */
 import { createConfig } from "ponder";
 import { fallback, http } from "viem";
