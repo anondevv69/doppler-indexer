@@ -48,7 +48,7 @@ Use this guide when starting a **new** Railway project (e.g. after deleting the 
     ```bash
     pnpm run start:bankr
     ```
-    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s. The script uses `--schema bankr` (not `default`) so Ponder doesn’t conflict with a previous multicurve run that used the same DB.
+    This uses `ponder.config.bankr-only.ts`: Base chain only, and only DecayMulticurveInitializer, DecayMulticurveInitializerHook, RehypeDopplerHookMigrator, plus the BankrWethPrice and BaseChainlinkEthPriceFeed blocks. No Zora, Ohara, Long, Duels, etc. — fewer RPC calls and less chance of 429s. If you still hit 429s during backfill, set `PONDER_RPC_URL_8453_FALLBACK` to a second Base RPC (same as multicurve). The script uses `--schema bankr_v2` (not `default`) so Ponder doesn’t conflict with multicurve or an older bankr run. If you see "Schema was previously used by a different Ponder app", use a new schema (e.g. bankr_v3) in the script or run DROP SCHEMA bankr_v2 CASCADE in Postgres and redeploy.
 - **Root directory:** leave as repo root.
 
 ---

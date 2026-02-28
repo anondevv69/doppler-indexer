@@ -2,10 +2,12 @@
  * Bankr-only indexer: Base chain + only Bankr-relevant contracts and blocks.
  * Use this to avoid indexing Doppler, Ohara, Long, Duels, Zora, etc. — fewer RPC calls and 429s.
  *
- * Start: pnpm start:bankr  or  ponder start --config ./ponder.config.bankr-only.ts -p $PORT --schema default
+ * Start: pnpm start:bankr  or  ponder start --config ./ponder.config.bankr-only.ts -p $PORT --schema bankr_v2
+ * Env: PONDER_RPC_URL_8453 (required); PONDER_RPC_URL_8453_FALLBACK (optional, reduces 429s).
+ * Schema bankr_v2 avoids "Schema was previously used by a different Ponder app" if you previously ran with bankr.
  */
 import { createConfig } from "ponder";
-import { http } from "viem";
+import { fallback, http } from "viem";
 import {
   PoolManagerABI,
   DopplerABI,
@@ -24,10 +26,13 @@ function getDatabaseUrl(): string {
   return process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/default";
 }
 
-// Only Base chain
+// Only Base chain; optional fallback RPC to reduce 429s
 const chains: Record<string, { id: number; rpc: ReturnType<typeof http> }> = {};
 if (process.env.PONDER_RPC_URL_8453) {
-  chains.base = { id: CHAIN_IDS.base, rpc: http(process.env.PONDER_RPC_URL_8453) };
+  const baseRpc = process.env.PONDER_RPC_URL_8453_FALLBACK
+    ? fallback([http(process.env.PONDER_RPC_URL_8453), http(process.env.PONDER_RPC_URL_8453_FALLBACK)])
+    : http(process.env.PONDER_RPC_URL_8453);
+  chains.base = { id: CHAIN_IDS.base, rpc: baseRpc };
 }
 
 // Only blocks needed for Bankr: ETH price and Bankr WETH price
